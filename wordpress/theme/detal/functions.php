@@ -1,0 +1,75 @@
+<?php
+if (!defined('ABSPATH')) { exit; }
+add_action('after_setup_theme', function () {
+    add_theme_support('title-tag');
+    add_theme_support('post-thumbnails');
+    add_theme_support('woocommerce');
+    add_theme_support('wc-product-gallery-slider');
+    add_theme_support('html5', ['search-form', 'gallery', 'caption']);
+    register_nav_menus(['primary' => 'Главное меню']);
+});
+add_action('wp_enqueue_scripts', function () {
+    wp_enqueue_style('detal', get_stylesheet_uri(), [], wp_get_theme()->get('Version'));
+});
+// SKU search also retains WooCommerce's product visibility and stock queries.
+add_filter('posts_search', function ($search, $query) {
+    global $wpdb;
+    if (!is_admin() && $query->is_search() && 'product' === $query->get('post_type') && $search) {
+        $term = '%' . $wpdb->esc_like($query->get('s')) . '%';
+        $sku = $wpdb->prepare("EXISTS (SELECT 1 FROM {$wpdb->postmeta} AS sku_meta WHERE sku_meta.post_id = {$wpdb->posts}.ID AND sku_meta.meta_key = '_sku' AND sku_meta.meta_value LIKE %s)", $term);
+        $search = ' AND ((' . preg_replace('/^\s*AND\s*/i', '', $search) . ') OR ' . $sku . ')';
+        if (!is_user_logged_in()) { $search .= " AND ({$wpdb->posts}.post_password = '')"; }
+    }
+    return $search;
+}, 10, 2);
+
+function detal_icon($name) {
+    $paths = [
+        'search'=>'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/>',
+        'menu'=>'<path d="M4 6h16M4 12h16M4 18h10"/>',
+        'user'=>'<circle cx="12" cy="7" r="3.5"/><path d="M4 21v-2a8 8 0 0 1 16 0v2Z"/>',
+        'orders'=>'<rect x="5" y="7" width="14" height="14" rx="2"/><path d="M3 3h18v4H3zM9 12h6"/>',
+        'cart'=>'<path d="M2 3h3l3 12h11l3-9H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/>',
+        'arrow'=>'<path d="M4 12h16m-6-6 6 6-6 6"/>',
+        'home'=>'<path d="m3 10 9-7 9 7v11h-6v-7H9v7H3Z"/>',
+    ];
+    return '<svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paths[$name] ?? $paths['arrow']) . '</svg>';
+}
+function detal_cart_link() {
+    $count = WC()->cart ? WC()->cart->get_cart_contents_count() : 0;
+    return '<a class="detal-cart-link" href="' . esc_url(wc_get_cart_url()) . '">' . detal_icon('cart') . '<span>Корзина</span><b class="cart-count" aria-label="Товаров в корзине: ' . esc_attr($count) . '">' . esc_html($count) . '</b></a>';
+}
+add_filter('woocommerce_add_to_cart_fragments', function ($fragments) {
+    $fragments['a.detal-cart-link'] = detal_cart_link();
+    return $fragments;
+});
+add_action('woocommerce_after_shop_loop_item_title', function () {
+    global $product;
+    if ($product && $product->get_sku()) { echo '<p class="product-sku">Артикул: ' . esc_html($product->get_sku()) . '</p>'; }
+}, 6);
+add_action('wp_enqueue_scripts', function () {
+    wp_enqueue_script('detal-ui', get_template_directory_uri() . '/assets/ui.js', [], wp_get_theme()->get('Version'), true);
+});
+
+/** Decorative category artwork never replaces individual product photographs. */
+function detal_category_artwork($category) {
+    $label = $category->name . ' ' . rawurldecode($category->slug);
+    $rules = [
+        'filters' => '/фильтр|filter/ui',
+        'oils' => '/масл|жидкост|oil|fluid|lubric/ui',
+        'brakes' => '/тормоз|brak/ui',
+        'suspension' => '/подвес|рулев|амортиз|suspension|steering/ui',
+        'electrics' => '/электр|зажиган|аккумулятор|electric|ignition|batter/ui',
+        'accessories' => '/аксессуар|инструмент|accessor|tool/ui',
+    ];
+    foreach ($rules as $asset => $pattern) {
+        if (preg_match($pattern, $label)) {
+            echo '<img class="detal-category-art" src="' . esc_url(get_template_directory_uri() . '/assets/art/' . $asset . '.webp') . '" alt="" width="1024" height="1024" loading="lazy" decoding="async">';
+            return;
+        }
+    }
+    // Custom or unknown categories keep the image selected in WooCommerce.
+    woocommerce_subcategory_thumbnail($category);
+}
+remove_action('woocommerce_before_subcategory_title', 'woocommerce_subcategory_thumbnail', 10);
+add_action('woocommerce_before_subcategory_title', 'detal_category_artwork', 10);
