@@ -52,7 +52,7 @@ add_action('wp_enqueue_scripts', function () {
 });
 
 /** Decorative category artwork never replaces individual product photographs. */
-function detal_category_artwork($category) {
+function detal_category_art_key($category) {
     $label = $category->name . ' ' . rawurldecode($category->slug);
     $rules = [
         'filters' => '/фильтр|filter/ui',
@@ -63,13 +63,69 @@ function detal_category_artwork($category) {
         'accessories' => '/аксессуар|инструмент|accessor|tool/ui',
     ];
     foreach ($rules as $asset => $pattern) {
-        if (preg_match($pattern, $label)) {
-            echo '<img class="detal-category-art" src="' . esc_url(get_template_directory_uri() . '/assets/art/' . $asset . '.webp') . '" alt="" width="1024" height="1024" loading="lazy" decoding="async">';
-            return;
-        }
+        if (preg_match($pattern, $label)) { return $asset; }
     }
-    // Custom or unknown categories keep the image selected in WooCommerce.
-    woocommerce_subcategory_thumbnail($category);
+    return '';
+}
+function detal_category_artwork($category) {
+    $asset = detal_category_art_key($category);
+    echo '<span class="detal-category-scene" aria-hidden="true"><span class="detal-category-podium"></span>';
+    if ($asset) {
+        echo '<img class="detal-category-art" src="' . esc_url(get_template_directory_uri() . '/assets/art/' . $asset . '.webp') . '" alt="" width="1254" height="1254" loading="lazy" decoding="async">';
+    } else {
+        woocommerce_subcategory_thumbnail($category);
+    }
+    echo '</span>';
 }
 remove_action('woocommerce_before_subcategory_title', 'woocommerce_subcategory_thumbnail', 10);
 add_action('woocommerce_before_subcategory_title', 'detal_category_artwork', 10);
+add_action('woocommerce_after_subcategory_title', function ($category) {
+    $captions = [
+        'filters' => 'Масляные, воздушные и салонные',
+        'oils' => 'Для двигателя и заботы об авто',
+        'brakes' => 'Диски, колодки и комплектующие',
+        'suspension' => 'Амортизаторы, рычаги и опоры',
+        'electrics' => 'Аккумуляторы, свечи и лампы',
+        'accessories' => 'Инструменты и полезные мелочи',
+    ];
+    $caption = $captions[detal_category_art_key($category)] ?? 'Все товары этого раздела';
+    echo '<span class="detal-category-subtitle">' . esc_html($caption) . '</span><span class="detal-category-cta">Смотреть товары ' . detal_icon('arrow') . '</span>';
+});
+
+/** Explicit admin action: creates only missing categories, never sample products. */
+function detal_default_catalog_categories() {
+    return [
+        'Фильтры' => 'filters',
+        'Масла и жидкости' => 'oils-fluids',
+        'Тормозная система' => 'brakes',
+        'Подвеска и рулевое' => 'suspension-steering',
+        'Электрика' => 'electrics',
+        'Аксессуары' => 'accessories',
+    ];
+}
+add_action('admin_notices', function () {
+    global $pagenow;
+    if ($pagenow !== 'themes.php' || !current_user_can('manage_woocommerce') || !taxonomy_exists('product_cat')) { return; }
+    $missing = false;
+    foreach (detal_default_catalog_categories() as $name => $slug) {
+        if (!term_exists($name, 'product_cat') && !term_exists($slug, 'product_cat')) { $missing = true; break; }
+    }
+    if ($missing) {
+        $url = wp_nonce_url(admin_url('admin-post.php?action=detal_create_catalog_categories'), 'detal_create_catalog_categories');
+        echo '<div class="notice notice-info"><p><strong>Деталь: разделы каталога</strong></p><p>Добавьте шесть разделов с объёмными иллюстрациями. Будут созданы только недостающие категории, без тестовых товаров.</p><p><a class="button button-primary" href="' . esc_url($url) . '">Добавить разделы каталога</a></p></div>';
+    } elseif (isset($_GET['detal_categories_created'])) {
+        echo '<div class="notice notice-success is-dismissible"><p>Разделы каталога готовы. Откройте главную страницу сайта.</p></div>';
+    }
+});
+add_action('admin_post_detal_create_catalog_categories', function () {
+    if (!current_user_can('manage_woocommerce') || !taxonomy_exists('product_cat')) { wp_die('Недостаточно прав.', '', ['response' => 403]); }
+    check_admin_referer('detal_create_catalog_categories');
+    foreach (detal_default_catalog_categories() as $name => $slug) {
+        if (!term_exists($name, 'product_cat') && !term_exists($slug, 'product_cat')) {
+            $result = wp_insert_term($name, 'product_cat', ['slug' => $slug]);
+            if (is_wp_error($result)) { wp_die(esc_html($result->get_error_message())); }
+        }
+    }
+    wp_safe_redirect(admin_url('themes.php?detal_categories_created=1'));
+    exit;
+});

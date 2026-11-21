@@ -1,7 +1,7 @@
 /*
 Theme Name: Деталь
 Description: Современный магазин автозапчастей для WooCommerce.
-Version: 1.2.0
+Version: 1.3.0
 Requires at least: 6.6
 Requires PHP: 8.1
 Text Domain: detal
@@ -20,3 +20,28 @@ Text Domain: detal
 @media(min-width:1100px){.hero h1{font-size:49px}.hero-copy{padding-left:40px}.hero-art-3d{margin-left:-20px}}
 @media(max-width:1050px) and (min-width:761px){.hero h1{font-size:39px}.hero-copy{padding-left:25px}.hero-copy p{font-size:13px}.hero{min-height:405px}.hero-art-3d{margin-left:0}.hero-parts-image{object-fit:contain}.categories .woocommerce ul.products li.product-category{min-height:260px}.woocommerce ul.products li.product-category a img.detal-category-art{height:170px}}
 @media(max-width:760px){.hero{display:flex;flex-direction:column;min-height:0}.hero-copy{padding:27px 25px 0}.hero-art-3d{height:auto;aspect-ratio:3/2;margin:0;width:100%;overflow:hidden}.hero-parts-image{object-fit:cover;-webkit-mask-image:linear-gradient(to bottom,transparent,#000 14%);mask-image:linear-gradient(to bottom,transparent,#000 14%)}.hero-footnote{position:relative;z-index:2;margin-bottom:2px}.hero h1{font-size:34px}.categories .woocommerce ul.products li.product-category{min-height:205px;padding:19px 10px 10px}.woocommerce ul.products li.product-category a img.detal-category-art{width:155px;height:135px;margin-top:12px}}
+
+/* Category showcases: a single accessible link, 3D parts, soft display podium. */
+.categories .woocommerce ul.products{gap:26px}
+.categories .woocommerce ul.products li.product-category{min-height:415px;padding:29px 20px 0;border-radius:25px;background:#f3f4f7}
+.categories .woocommerce ul.products li.product-category:nth-child(3n+2){background:#f3f4f7}
+.categories .woocommerce ul.products li.product-category:nth-child(3n){background:#f3f4f7}
+.woocommerce ul.products li.product-category>a{position:relative;isolation:isolate;width:100%;min-height:386px;justify-content:flex-start}
+.woocommerce ul.products li.product-category .woocommerce-loop-category__title{order:0;position:relative;z-index:3;font-size:23px;line-height:1.25;min-height:29px;margin:0 0 6px;padding:0;flex-shrink:0}
+.woocommerce ul.products li.product-category mark{display:none}
+.detal-category-subtitle{order:1;position:relative;z-index:3;font-size:13px;line-height:1.5;color:#797c98;display:block;max-width:285px;min-height:39px}
+.detal-category-scene{position:absolute;left:-20px;right:-20px;bottom:0;height:290px;display:block;z-index:1;pointer-events:none}
+.detal-category-podium{position:absolute;bottom:-24px;left:50%;transform:translateX(-50%);width:115%;height:139px;border-radius:50% 50% 0 0/31% 31% 0 0;background:linear-gradient(105deg,#c8ccd8 0%,#edf0f5 35%,#c7ccda 70%,#aeb6ca 100%);box-shadow:inset -12px -6px 30px #929ab62b}
+.detal-category-podium:before{content:'';position:absolute;inset:0 0 auto;height:76px;border-radius:50%;background:linear-gradient(135deg,#ecedf1,#d8dce7 65%,#c4cbdc);box-shadow:inset 0 2px 2px #ffffffb3}
+.woocommerce ul.products li.product-category .detal-category-scene img{position:absolute;bottom:75px;left:50%;transform:translateX(-50%);width:255px;height:232px;max-width:93%;object-fit:contain;margin:0!important;mix-blend-mode:normal;filter:drop-shadow(0 9px 7px #47465d1a)}
+.detal-category-cta{position:absolute;bottom:25px;left:50%;transform:translateX(-50%);z-index:4;display:flex;align-items:center;justify-content:center;gap:12px;white-space:nowrap;border-radius:11px;background:#fff;padding:11px 17px;min-height:44px;font-size:12px;font-weight:600;box-shadow:0 3px 13px #4e587010;color:#34353b}
+.detal-category-cta .icon{width:16px;height:16px}
+.woocommerce ul.products li.product-category>a:focus-visible{outline-offset:-3px;border-radius:12px}
+.woocommerce ul.products li.product-category:hover .detal-category-cta{background:#303137;color:#fff}
+@media(max-width:1050px) and (min-width:761px){.categories .woocommerce ul.products{gap:15px}.categories .woocommerce ul.products li.product-category{padding:23px 15px 0;min-height:365px}.woocommerce ul.products li.product-category>a{min-height:342px}.woocommerce ul.products li.product-category .woocommerce-loop-category__title{font-size:19px}.detal-category-subtitle{font-size:12px}.detal-category-scene{left:-15px;right:-15px;height:265px}.woocommerce ul.products li.product-category .detal-category-scene img{height:205px;width:220px;bottom:68px}.detal-category-cta{font-size:11px;padding:10px 13px}}
+@media(max-width:760px){.categories .woocommerce ul.products{gap:12px}.categories .woocommerce ul.products li.product-category{padding:21px 10px 0;min-height:285px;border-radius:20px}.woocommerce ul.products li.product-category>a{min-height:264px}.woocommerce ul.products li.product-category .woocommerce-loop-category__title{font-size:15px;min-height:38px;margin-bottom:3px;display:flex;align-items:center;justify-content:center}.detal-category-subtitle{font-size:10px;line-height:1.5;min-height:32px;max-width:150px}.detal-category-scene{left:-10px;right:-10px;height:185px}.woocommerce ul.products li.product-category .detal-category-scene img{bottom:55px;width:157px;height:135px;max-width:95%}.detal-category-podium{height:100px;bottom:-22px;width:120%}.detal-category-podium:before{height:55px}.detal-category-cta{bottom:15px;min-height:44px;padding:9px 12px;font-size:10px;border-radius:10px;gap:6px}.detal-category-cta .icon{width:13px;height:13px}}
+@media(max-width:359px){.categories .woocommerce ul.products{grid-template-columns:1fr}.categories .woocommerce ul.products li.product-category{min-height:340px}.woocommerce ul.products li.product-category>a{min-height:319px}.detal-category-scene{height:240px}.woocommerce ul.products li.product-category .detal-category-scene img{width:205px;height:200px}}
+
+.catalog-empty-note{text-align:center;color:#747784;padding:28px;border-radius:20px;background:#f5f5f7}
+
+@media(min-width:1051px){.categories .woocommerce ul.products li.product-category{min-height:440px}.woocommerce ul.products li.product-category>a{min-height:411px}.woocommerce ul.products li.product-category .detal-category-scene img{width:285px;height:255px}}
